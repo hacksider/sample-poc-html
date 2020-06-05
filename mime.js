@@ -15,7 +15,7 @@ function getBLOBFileHeader(url, blob, callback) {
 function getRemoteFileHeader(url, callback) {
   var xhr = new XMLHttpRequest();
   // Bypass CORS for this demo - naughty, Drakes
-  //xhr.open('GET', '//cors-anywhere.herokuapp.com/' + url);
+  xhr.open('GET', '//cors-anywhere.herokuapp.com/' + url);
   xhr.responseType = "blob";
   xhr.onload = function() {
     callback(url, xhr.response);
