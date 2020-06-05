@@ -1,7 +1,177 @@
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-<script src="./mime.js"></script>
+<!DOCTYPE html>
+<!-- saved from url=(0053)https://fiddle.jshell.net/Drakes/yvnvfsdu/show/light/ -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <title>JS FileReader MIME type sniffer</title>
+  
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="googlebot" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <script type="text/javascript" src="./dummy.js.download"></script>
+
+    <link rel="stylesheet" type="text/css" href="./result-light.css">
+
+
+  <style id="compiled-css" type="text/css">
+      img {
+  max-height: 200px
+}
+div {
+  height: 26px;
+  font: Arial;
+  font-size: 12pt
+}
+form {
+  height: 40px;
+}
+    /* EOS */
+  </style>
+
+  <script id="insert"></script>
+
+
+</head>
+<body>
+    <script src="./jquery.min.js.download"></script>
 <form>
-  <input type="file" />
+  <input type="file">
   <div>Choose an image to see its file signature.</div>
 </form>
-<hr/>
+<hr>
+
+  <!-- TODO: Missing CoffeeScript 2 -->
+
+  <script type="text/javascript">//<![CDATA[
+
+
+
+function getBLOBFileHeader(url, blob, callback) {
+  var fileReader = new FileReader();
+  fileReader.onloadend = function(e) {
+    var arr = (new Uint8Array(e.target.result)).subarray(0, 4);
+    var header = "";
+    for (var i = 0; i < arr.length; i++) {
+      header += arr[i].toString(16);
+    }
+    callback(url, header);
+  };
+  fileReader.readAsArrayBuffer(blob);
+}
+
+function getRemoteFileHeader(url, callback) {
+  var xhr = new XMLHttpRequest();
+  // Bypass CORS for this demo - naughty, Drakes
+  xhr.open('GET', '//cors-anywhere.herokuapp.com/' + url);
+  xhr.responseType = "blob";
+  xhr.onload = function() {
+    callback(url, xhr.response);
+  };
+  xhr.onerror = function() {
+    alert('A network error occurred!');
+  };
+  xhr.send();
+}
+
+function headerCallback(url, headerString) {
+  printHeaderInfo(url, headerString);
+}
+
+function remoteCallback(url, blob) {
+  printImage(blob);
+  getBLOBFileHeader(url, blob, headerCallback);
+}
+
+function printImage(blob) {
+  // Add this image to the document body for proof of GET success
+  var fr = new FileReader();
+  fr.onloadend = function() {
+    $("hr").after($("<img>").attr("src", fr.result))
+      .after($("<div>").text("Blob MIME type: " + blob.type));
+  };
+  fr.readAsDataURL(blob);
+}
+
+// Add more from http://en.wikipedia.org/wiki/List_of_file_signatures
+function mimeType(headerString) {
+  switch (headerString) {
+    case "89504e47":
+      type = "image/png";
+      break;
+    case "47494638":
+      type = "image/gif";
+      break;
+    case "ffd8ffe0":
+    case "ffd8ffe1":
+    case "ffd8ffe2":
+      type = "image/jpeg";
+      break;
+    case "25504446":
+      type = "file/pdf";
+      break;
+    case "ia45dfa3":
+      type = "file/pdf";
+      break;
+    case "66747970":
+      type = "video/mp4";
+      break;
+    default:
+      type = "unknown";
+      break;
+  }
+  return type;
+}
+
+function printHeaderInfo(url, headerString) {
+  $("hr").after($("<div>").text("Real MIME type: " + mimeType(headerString)))
+    .after($("<div>").text("File header: 0x" + headerString))
+    .after($("<div>").text(url));
+}
+
+/* Demo driver code */
+
+var imageURLsArray = ["http://media2.giphy.com/media/8KrhxtEsrdhD2/giphy.gif", "http://upload.wikimedia.org/wikipedia/commons/e/e9/Felis_silvestris_silvestris_small_gradual_decrease_of_quality.png", "http://static.giantbomb.com/uploads/scale_small/0/316/520157-apple_logo_dec07.jpg"];
+
+// Check for FileReader support
+if (window.FileReader && window.Blob) {
+  // Load all the remote images from the urls array
+  for (var i = 0; i < imageURLsArray.length; i++) {
+    getRemoteFileHeader(imageURLsArray[i], remoteCallback);
+  }
+
+  /* Handle local files */
+  $("input").on('change', function(event) {
+    var file = event.target.files[0];
+    if (file.size >= 20 * 1024 * 1024) {
+      alert("File size must be at most 20MB");
+      return;
+    }
+    remoteCallback(escape(file.name), file);
+  });
+
+} else {
+  // File and Blob are not supported
+  $("hr").after( $("<div>").text("It seems your browser doesn't support FileReader") );
+} /* Drakes, 2015 */
+
+
+  //]]></script>
+
+  <script>
+    // tell the embed parent frame the height of the content
+    if (window.parent && window.parent.parent){
+      window.parent.parent.postMessage(["resultsFrame", {
+        height: document.body.getBoundingClientRect().height,
+        slug: "yvnvfsdu"
+      }], "*")
+    }
+
+    // always overwrite window.name, in case users try to set it manually
+    window.name = "result"
+  </script>
+
+
+
+
+</body></html>
